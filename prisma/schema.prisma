@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id String @id @default(uuid())
+
+  title   String
+  content String
+  option  String //evento, ajuda, duvida, curiosidade
+  state   String?
+
+  value     Int
+  createdAt DateTime @default(now())
+
+  comments Comment[]
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+}
+
+model Comment {
+  id String @id @default(uuid())
+
+  content String
+  value   Int
+
+  createdAt DateTime @default(now())
+
+  post   Post   @relation(fields: [postId], references: [id])
+  postId String
+
+  replies         Comment[] @relation("Replies")
+  parentComment   Comment?  @relation("Replies", fields: [parentCommentId], references: [id])
+  parentCommentId String?
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+}
+
+model Bee {
+  id String @id @default(uuid())
+
+  name                 String
+  binomialNomenclature String
+
+  BeeData BeeData?
+}
+
+model BeeData {
+  id String @id @default(uuid())
+
+  content String
+  value   Int
+
+  createdAt DateTime @default(now())
+
+  updatedBy User[] @relation("BeeDataUpdates")
+
+  bee   Bee    @relation(fields: [beeId], references: [id])
+  beeId String @unique
+}
+
+model User {
+  id String @id @unique @default(uuid())
+  iv String
+
+  name     String
+  email    String @unique
+  password String
+  state    String
+  asfCoins Int
+  asfCash  Int
+
+  registeredAt DateTime @default(now())
+
+  posts     Post[]
+  comments  Comment[]
+  beeKeeper BeeKeeper?
+
+  updatedBeeData BeeData[] @relation("BeeDataUpdates")
+}
+
+model BeeKeeper {
+  id String @id @default(uuid())
+
+  city        String
+  phoneNumber String @unique
+  RG          String @unique
+  CPF         String @unique
+
+  subscriptionAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
